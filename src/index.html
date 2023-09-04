@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>edgeDeployment App</title>
+  </head>
+  <body>
+    <h1>edgeDeployment App</h1>
+    <form id="myForm">
+      <label for="SIGSCI_EMAIL">SIGSCI_EMAIL:</label>
+      <input type="text" id="SIGSCI_EMAIL" name="SIGSCI_EMAIL" required><br>
+      <label for="SIGSCI_TOKEN">SIGSCI_TOKEN:</label>
+      <input type="text" id="SIGSCI_TOKEN" name="SIGSCI_TOKEN" required><br>
+      <label for="corpName">corpName:</label>
+      <input type="text" id="corpName" name="corpName" required><br>
+      <label for="siteName">siteName:</label>
+      <input type="text" id="siteName" name="siteName" required><br>
+      <label for="fastlySID">fastlySID:</label>
+      <input type="text" id="fastlySID" name="fastlySID" required><br>
+      <label for="fastlyKey">fastlyKey:</label>
+      <input type="text" id="fastlyKey" name="fastlyKey" required><br>
+      <button type="submit">Submit</button>
+    </form>
+    <div id="response"></div>
+  
+    <script>
+      document.getElementById('myForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const SIGSCI_EMAIL = document.getElementById('SIGSCI_EMAIL').value;
+        const SIGSCI_TOKEN = document.getElementById('SIGSCI_TOKEN').value;
+        const corpName = document.getElementById('corpName').value;
+        const siteName = document.getElementById('siteName').value;
+        const fastlySID = document.getElementById('fastlySID').value;
+        const fastlyKey = document.getElementById('fastlyKey').value;
+  
+        try {
+          const response = await fetch('/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              SIGSCI_EMAIL,
+              SIGSCI_TOKEN,
+              corpName,
+              siteName,
+              fastlySID,
+              fastlyKey,
+            }),
+          });
+  
+          if (!response.ok) {
+            throw new Error('Server request failed');
+          }
+  
+          const data = await response.json();
+          document.getElementById('response').innerText = `API Response: ${JSON.stringify(data)}`;
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    </script>
+  </body>
+</html>

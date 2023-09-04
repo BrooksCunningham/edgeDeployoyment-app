@@ -1,0 +1,20 @@
+# This file describes a Fastly Compute@Edge package. To learn more visit:
+# https://developer.fastly.com/reference/fastly-toml/
+
+authors = ["brookscunningham@gmail.com"]
+description = ""
+language = "javascript"
+manifest_version = 2
+name = "edgeDeployoyment-app"
+service_id = ""
+
+[scripts]
+  build = "npm run build"
+
+  [local_server.backends]
+
+    [local_server.backends.httpme_origin]
+    url = "https://http-me.glitch.me"
+
+    [local_server.backends.ngwaf_api_origin]
+    url = "https://dashboard.signalsciences.net"
