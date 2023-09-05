@@ -17,7 +17,7 @@ const indexHTML = `<!DOCTYPE html>
     <label for="SIGSCI_EMAIL">SIGSCI_EMAIL:</label>
     <input type="text" id="SIGSCI_EMAIL" name="SIGSCI_EMAIL" required><br>
     <label for="SIGSCI_TOKEN">SIGSCI_TOKEN:</label>
-    <input type="text" id="SIGSCI_TOKEN" name="SIGSCI_TOKEN" required><br>
+    <input type="password" id="SIGSCI_TOKEN" name="SIGSCI_TOKEN" required><br>
     <label for="corpName">corpName:</label>
     <input type="text" id="corpName" name="corpName" required><br>
     <label for="siteName">siteName:</label>
@@ -25,7 +25,7 @@ const indexHTML = `<!DOCTYPE html>
     <label for="fastlySID">fastlySID:</label>
     <input type="text" id="fastlySID" name="fastlySID" required><br>
     <label for="fastlyKey">fastlyKey:</label>
-    <input type="text" id="fastlyKey" name="fastlyKey" required><br>
+    <input type="password" id="fastlyKey" name="fastlyKey" required type="password"><br>
     <button type="submit">Submit</button>
   </form>
   <div id="response"></div>
@@ -41,7 +41,7 @@ const indexHTML = `<!DOCTYPE html>
       const fastlyKey = document.getElementById('fastlyKey').value;
 
       try {
-        const response = await fetch('/submit', {
+        const response = await fetch('/edgeDeployment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -92,15 +92,22 @@ router.post("/submit", async (req, res) => {
 
 router.post("/edgeDeployment", async (req, res) => {
 
-  const SIGSCI_EMAIL = "your-email@example.com"; // Replace with your actual email
-  const SIGSCI_TOKEN = "your-api-token"; // Replace with your actual API token
-  const corpName = "your-corp-name"; // Replace with your corp name
-  const siteName = "your-site-name"; // Replace with your site name
-  const fastlySID = "your-corp-name"; // Replace with your corp name
-  const fastlyKey = "your-site-name"; // Replace with your site name
+  const { 
+    SIGSCI_EMAIL,
+    SIGSCI_TOKEN,
+    corpName,
+    siteName,
+    fastlySID,
+    fastlyKey,
+  } = await req.json();
 
-  
-  // let body = await req.text();
+  // const SIGSCI_EMAIL = "your-email@example.com"; // Replace with your actual email
+  // const SIGSCI_TOKEN = "your-api-token"; // Replace with your actual API token
+  // const corpName = "your-corp-name"; // Replace with your corp name
+  // const siteName = "your-site-name"; // Replace with your site name
+  // const fastlySID = "your-corp-name"; // Replace with your corp name
+  // const fastlyKey = "your-site-name"; // Replace with your site name
+
   const respEdgeDeployment = await edgeDeployment(SIGSCI_EMAIL, SIGSCI_TOKEN, corpName, siteName);
   const edgeDeploymentText = await respEdgeDeployment.json();
 
@@ -114,7 +121,6 @@ router.post("/edgeDeployment", async (req, res) => {
 
   res.send(JSON.stringify(resp));
 })
-
 
 // 404/405 response for everything else
 
