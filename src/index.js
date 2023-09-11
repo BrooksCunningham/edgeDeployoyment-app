@@ -1,6 +1,8 @@
 /// <reference types="@fastly/js-compute" />
 
 import { Router } from "@fastly/expressly";
+import { Dictionary } from "fastly:dictionary";
+import { env } from "fastly:env";
 
 const ngwafApiOrigin = "ngwaf_api_origin";
 
@@ -69,11 +71,39 @@ const indexHTML = `<!DOCTYPE html>
 </html>
 `;
 
+console.log("FASTLY_HOSTNAME:", env("FASTLY_HOSTNAME"));
+console.log("FASTLY_TRACE_ID:", env("FASTLY_TRACE_ID"));
+console.log("FASTLY_SERVICE_VERSION:", env("FASTLY_SERVICE_VERSION"));
+
 const router = new Router();
 
 // Use middleware to set a header
 router.use((req, res) => {
   res.set("x-powered-by", "expressly");
+
+  // https://developer.fastly.com/solutions/examples/http-basic-auth/
+
+  // Each entry in the dictionary has the base64-encoded value of username:password as its key.
+  // To generate a key from username:password pairs, on a bash shell you should be able to do:
+  // echo -n "alice:secretpassword" | base64
+  const dict = new Dictionary("username_password");
+  const credential = getCredential(req.headers.get("Authorization"));
+
+  if(keyExists(dict, credential)) {
+    // Decode the credential and extract the username.
+    const username = getUserName(credential);
+    if(username) {
+      req.headers.delete("Authorization");
+      req.headers.set("Authorized-User", username);
+      // console.log(`Access granted for user ${username}`);
+    }
+  } else {
+    // if the key does not exist then return a 401
+    res.headers.set(`WWW-Authenticate`, `Basic realm="Login"`);
+    return res
+      .withStatus(401)
+      .html("<html><body><h1>Hello Fastlyan! Reach out to Brooks for access.</h1></body></html>");
+  }
 });
 
 // GET 200 response
@@ -101,13 +131,6 @@ router.post("/edgeDeployment", async (req, res) => {
     fastlyKey,
   } = await req.json();
 
-  // const SIGSCI_EMAIL = "your-email@example.com"; // Replace with your actual email
-  // const SIGSCI_TOKEN = "your-api-token"; // Replace with your actual API token
-  // const corpName = "your-corp-name"; // Replace with your corp name
-  // const siteName = "your-site-name"; // Replace with your site name
-  // const fastlySID = "your-corp-name"; // Replace with your corp name
-  // const fastlyKey = "your-site-name"; // Replace with your site name
-
   const respEdgeDeployment = await edgeDeployment(SIGSCI_EMAIL, SIGSCI_TOKEN, corpName, siteName);
   const edgeDeploymentText = await respEdgeDeployment.json();
 
@@ -125,11 +148,6 @@ router.post("/edgeDeployment", async (req, res) => {
 // 404/405 response for everything else
 
 router.listen();
-
-
-// curl -H "x-api-user:${SIGSCI_EMAIL}" -H "x-api-token:${SIGSCI_TOKEN}" \
-// -H "Content-Type: application/json" -X PUT \
-// "https://dashboard.signalsciences.net/api/v0/corps/${corpName}/sites/${siteName}/edgeDeployment"
 
 async function edgeDeployment(SIGSCI_EMAIL, SIGSCI_TOKEN, corpName, siteName) {
   
@@ -177,9 +195,27 @@ async function edgeDeploymentService(SIGSCI_EMAIL
   const resp = await fetch(url, options);
   
   return resp;
-
-  // const responsePromise = fetch(req, {
-  //   backend: ""
-  // })
 }
 
+function getUserName(input) {
+  let decodedInput = atob(input);
+  const re = /^(?<username>.+?):.*$/;
+  const m = decodedInput.match(re);
+  return m ? m.groups.username : "";
+}
+
+function getCredential(input) {
+  let re = /Basic (?<credential>.+)/;
+  return re.test(input) ? re.exec(input).groups.credential : "";
+}
+
+function keyExists(dict, key) {
+  try { 
+    if(dict.get(key) !== null){
+      return true;
+    };  
+  } catch (e) { 
+    return false; 
+  }
+  return false; 
+}
