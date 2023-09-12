@@ -95,7 +95,6 @@ router.use((req, res) => {
     if(username) {
       req.headers.delete("Authorization");
       req.headers.set("Authorized-User", username);
-      // console.log(`Access granted for user ${username}`);
     }
   } else {
     // if the key does not exist then return a 401
